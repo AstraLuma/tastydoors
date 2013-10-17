@@ -18,11 +18,20 @@ class Configuration(Frame):
 class ConfigurationResponse(Frame):
 	__code__ = Configuration.__code__ + 1
 
+	@classmethod
+	def __build__(cls, payload):
+		return cls(*payload)
+
 	def __payload__(self):
 		pass
 
 class RegulationTest(Frame):
 	__code__ = 0x58
-	#TODO
+
+	def __init__(self, TxMode):
+		self.TxMode = TxMode
+
+	def __payload__(self):
+		return self.TxMode,
 
 # RfRegulationTest never ends, so has no response
