@@ -71,7 +71,8 @@ class PN532(object):
 		if TFI in "\xD4\xD5":
 			ccode = data[1]
 			payload = data[2:]
-			return Frame.get_class(ccode).fromwire(payload)
+			f = Frame.get_class(ccode).fromwire(payload)
+			f.sent = TFI == "\xD4"
 		else:
 			# Error Frame
 			raise Error(TFI)
@@ -88,11 +89,19 @@ class PN532(object):
 				self.send(NACK())
 
 	def doit(self, frame):
+		"""p.doit(Frame) -> Frame
+		Execute a command and return the response.
+
+		TODO: Handle timeouts
+		"""
 		self.send(frame)
 		ack = self.get() #TODO: 15ms timeout
 		if isinstance(ack, ACK):
 			pass # Continue
-		elif isinstance(ack, NACK):
-			pass # TODO: Resend
+		else:
+			raise IOError("PN532 sent %s when ACK was expected", ack)
+		# Not speced to send NACK
 
-		return self.get()
+		res = self.get()
+		self.send(ACK())
+		return res

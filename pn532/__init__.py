@@ -30,12 +30,12 @@ class Frame(object):
 		def __init__(cls, *p, **kw):
 			abc.ABCMeta.__init__(cls, *p, **kw) # Can't use new style because can't get references
 			if cls.__code__ is not None:
-				if cls.__sent__ is None:
-					cls.__sent__ = not (cls.__code__ & 1)
+				if cls.sent is None:
+					cls.sent = not (cls.__code__ & 1)
 				Frame._types[cls.__code__] = cls
 
 	_types = {}
-	__sent__ = None
+	sent = None
 	__code__ = None
 
 	@staticmethod
@@ -65,7 +65,7 @@ class Frame(object):
 		"""
 		Builds payload, including TFI, command code, and data.
 		"""
-		if self.__sent__:
+		if self.sent:
 			payload = "\xD5"
 		else:
 			payload = "\xD4"
