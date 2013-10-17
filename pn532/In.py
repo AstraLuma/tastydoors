@@ -125,3 +125,14 @@ class ATRResponse(Frame):
 		else:
 			Gt = None
 		return cls(Status, NFCID3, DIDt, BSt, BRt, TO, PPt, Gt)
+
+@fields('Tg', 'BRit', 'BRti')
+class PSL(Frame):
+	__code__ = 0x4E
+
+	def __payload__(self):
+		return self.Tg, self.BRit, self.BRti
+
+@fields('Status')
+class PSLResponse(Frame):
+	__code__ = PSL.__code__ + 1
