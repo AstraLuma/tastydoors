@@ -202,7 +202,14 @@ class Diagnose(Frame):
 
 class DiagnoseResponse(Frame):
 	__code__ = Diagnose.__code__ + 1
-	#TODO
+
+	def __init__(self, OutParam):
+		self.OutParam = OutParam
+
+	@classmethod
+	def __build__(cls, payload):
+		return cls(payload)
+
 
 class FirmwareVersion(Frame):
 	__code__ = 0x02
@@ -216,6 +223,10 @@ class FirmwareVersionResponse(Frame):
 		self.Ver = Ver
 		self.Rev = Rev
 		self.Support = Support
+
+	@classmethod
+	def __build__(cls, payload):
+		return cls(*payload)
 
 	@property
 	def ISO18092(self):
@@ -240,7 +251,31 @@ class GeneralStatus(Frame):
 
 class GeneralStatusResponse(Frame):
 	__code__ = GeneralStatus.__code__ + 1
-	#TODO
+
+	Target = collections.namedtuple("Target", ["Tg", "BrRx", "BrTx", "Type"])
+
+	def __init__(self, Err, Field, targets, SAMstatus):
+		self.Err = Err
+		self.Field = Field
+		self.targets = targets
+		self.SAMStatus = SAMstatus
+
+	@property
+	def NbTg(self):
+		return len(self.targets)
+
+	@classmethod
+	def __build__(cls, payload):
+		Err, Field, NbTg = payload[:3]
+		SAMstatus = payload[-1]
+		assert NbTg * 4 == len(payload[3:-1])
+
+		targets = [
+			self.Target(*payload[i:i+4])
+			for i in slice(3, -1, 4).indices(len(payload))
+		]
+
+		return cls(Err, Field, targets, SAMstatus)
 
 class SFR:
 	"""
@@ -292,6 +327,10 @@ class ReadRegisterResponse(Frame):
 	def __init__(self, *values):
 		self.values = values
 
+	@classmethod
+	def __build__(cls, payload):
+		return cls(*payload)
+
 	def __payload__(self):
 		return self.values
 
@@ -308,6 +347,11 @@ class WriteRegister(Frame):
 
 class WriteRegisterResponse(Frame):
 	__code__ = WriteRegister.__code__ + 1
+
+	@classmethod
+	def __build__(cls, payload):
+		return cls()
+
 	def __payload__(self):
 		pass
 
@@ -324,6 +368,10 @@ class ReadGPIOResponse(Frame):
 		self.P7 = P7
 		self.I0I1 = I0I1
 
+	@classmethod
+	def __build__(cls, payload):
+		return cls(*payload)
+
 	def __payload__(self):
 		return self.P3, self.P7, selfI0I1
 
@@ -339,6 +387,11 @@ class WriteGPIO(Frame):
 
 class WriteGPIOResponse(Frame):
 	__code__ = WriteGPIO.__code__ + 1
+
+	@classmethod
+	def __build__(cls, payload):
+		return cls()
+
 	def __payload__(self):
 		pass
 
@@ -360,6 +413,10 @@ class SetParameters(Frame):
 
 class SetParametersResponse(Frame):
 	__code__ = SetParameters.__code__ + 1
+
+	@classmethod
+	def __build__(cls, payload):
+		return cls()
 
 	def __payload__(self):
 		pass
@@ -390,6 +447,10 @@ class PowerDownResponse(Frame):
 
 	def __init__(self, Status):
 		self.Status = Status
+
+	@classmethod
+	def __build__(cls, payload):
+		return cls(*payload)
 
 	def __payload__(self):
 		return self.Status,
