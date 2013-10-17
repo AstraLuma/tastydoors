@@ -79,6 +79,18 @@ class JumpForPSLResponse(Frame):
 class ListPassiveTarget(Frame):
 	__code__ = 0x4A
 
-	def __init__(self, MaxTg, BrTy, InitiatorData=None):
-		self.MaxTg = MaxTg
-		self.BrTy = BrTy
+	def __payload__(self):
+		if self.InitiatorData is None:
+			return self.MaxTg, self.BrTy
+		else:
+			return self.MaxTg, self.BrTy, self.InitiatorData
+
+@fields('targets')
+class ListPassiveTargetResponse(Frame):
+	__code__ = ListPassiveTarget.__code__ + 1
+
+	@classmethod
+	def __build__(cls, payload):
+		NbTg = payload[0]
+		# FIXME: Can this be parsed context-free? Or do we need the request packet?
+
