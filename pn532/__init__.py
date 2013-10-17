@@ -6,6 +6,15 @@ import abc
 import numbers
 import collections
 
+def fields(*names):
+	def _(cls):
+		return type(
+			cls.__name__,
+			(cls, collections.namedtuple(cls.__name__+"Tuple", names)),
+			dict(vars(cls))
+			)
+	return _
+
 def bytepack(*nums):
 	"""bytepack(num, ...) -> bytes
 	Take a series of byte values and convert them to a binary buffer.
@@ -52,7 +61,7 @@ class Frame(object):
 		"""<Frame>.__build__(list(int)) -> <Frame>
 		Construct the Frame object from a payload
 		"""
-		raise NotImplementedError
+		return cls(*payload)
 
 	def __payload__(self):
 		"""f.__payload__() -> [...]
@@ -186,11 +195,9 @@ class Error(Exception, Frame):
 	OVER_CURRENT = 0x2D
 	NAD_MISSING = 0x2E
 
+@fields('NumTst', 'InParam')
 class Diagnose(Frame):
 	__code__ = 0x00
-	def __init__(self, NumTst, InParam=None):
-		self.NumTst = NumTst
-		self.InParam = InParam
 
 	def __payload__(self):
 		if self.InParam is None:
@@ -200,6 +207,7 @@ class Diagnose(Frame):
 		else:
 			return self.NumTst, self.InParam
 
+@fields('NumTst', 'OutParam')
 class DiagnoseResponse(Frame):
 	__code__ = Diagnose.__code__ + 1
 
@@ -216,17 +224,9 @@ class FirmwareVersion(Frame):
 	def __payload__(self):
 		pass
 
+@fields('IC', 'Ver', 'Rev', 'Support')
 class FirmwareVersionResponse(Frame):
 	__code__ = FirmwareVersion.__code__ + 1
-	def __init__(self, IC, Ver, Rev, Support):
-		self.IC = IC
-		self.Ver = Ver
-		self.Rev = Rev
-		self.Support = Support
-
-	@classmethod
-	def __build__(cls, payload):
-		return cls(*payload)
 
 	@property
 	def ISO18092(self):
@@ -249,6 +249,7 @@ class GeneralStatus(Frame):
 	def __payload__(self):
 		pass
 
+@fields("Err", "Field", "targets", "SAMstatus")
 class GeneralStatusResponse(Frame):
 	__code__ = GeneralStatus.__code__ + 1
 
@@ -348,10 +349,6 @@ class WriteRegister(Frame):
 class WriteRegisterResponse(Frame):
 	__code__ = WriteRegister.__code__ + 1
 
-	@classmethod
-	def __build__(cls, payload):
-		return cls()
-
 	def __payload__(self):
 		pass
 
@@ -360,13 +357,9 @@ class ReadGPIO(Frame):
 	def __payload__(self):
 		pass
 
+@fields('P3', 'P7', 'I0I1')
 class ReadGPIOResponse(Frame):
 	__code__ = ReadGPIO.__code__ + 1
-
-	def __init__(self, P3, P7, I0I1):
-		self.P3 = P3
-		self.P7 = P7
-		self.I0I1 = I0I1
 
 	@classmethod
 	def __build__(cls, payload):
@@ -456,6 +449,7 @@ class PowerDownResponse(Frame):
 		return self.Status,
 
 # Submodules
-
-import Rf, In, Tg
-from _stream import PN532
+import pn532.Rf as Rf
+import pn532.In as In
+import pn532.Tg as Tg
+from pn532._stream import PN532

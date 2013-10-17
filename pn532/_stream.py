@@ -51,9 +51,9 @@ class PN532(object):
 		LCS = header[3]
 		if LEN == 0 and LCS == 0xFF:
 			return ACK()
-		elif LEN == 0xFF and LCS = 0:
+		elif LEN == 0xFF and LCS == 0:
 			return NACK()
-		elif LEN == 0xFF and LCS = 0xFF:
+		elif LEN == 0xFF and LCS == 0xFF:
 			# Extended length
 			while len(header) <= 7:
 				header += self.serial.read(1)
