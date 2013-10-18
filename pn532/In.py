@@ -136,3 +136,51 @@ class PSL(Frame):
 @fields('Status')
 class PSLResponse(Frame):
 	__code__ = PSL.__code__ + 1
+
+@fields('Tg', 'DataOut')
+class DataExchange(Frame):
+	__code__ = 0x40
+	def __payload__(self):
+		if getattr(self, 'DataOut'):
+			return (self.Tg,)+tuple(self.DataOut)
+		else:
+			return self.Tg
+
+@fields('Status', 'DataIn')
+class DataExchangeResponse(Frame):
+	__code__ = DataExchange.__code__ + 1
+
+	@classmethod
+	def __build__(cls, payload):
+		if len(payload) == 1:
+			return cls(payload[0], None)
+		else:
+			return cls(payload[0], payload[1:]
+
+@fields('DataOut')
+class CommunicateThru(Frame):
+	__code__ = 0x42
+	def __payload__(self):
+		if getattr(self, 'DataOut'):
+			return self.DataOut
+
+@fields('Status', 'DataIn')
+class CommunicateThruResponse(Frame):
+	__code__ = CommunicateThru.__code__ + 1
+	@classmethod
+	def __build__(cls, payload):
+		if len(payload) == 1:
+			return cls(payload[0], None)
+		else:
+			return cls(payload[0], payload[1:]
+
+@fields('Tg')
+class Deselect(Frame):
+	__code__ = 0x52
+	def __payload__(self):
+		return self.Tg
+
+@fields('Status')
+class DeselectResponse(Frame):
+	__code__ = Deselect.__code__
+
