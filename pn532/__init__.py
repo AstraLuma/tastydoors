@@ -451,5 +451,5 @@ class PowerDownResponse(Frame):
 # Submodules
 import pn532.Rf as Rf
 import pn532.In as In
-import pn532.Tg as Tg
+#import pn532.Tg as Tg
 from pn532._stream import PN532
