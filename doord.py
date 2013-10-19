@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import couchdb
+from time import sleep
 from pn532 import *
 
 # Configuration Options
@@ -24,17 +25,32 @@ def openDoor():
 	Opens door, waits, closes door.
 	"""
 
-try:
-	with PN532(SERIAL_PORT) as reader:
+with PN532(SERIAL_PORT) as reader:
+	setStatus(OFF)
+	# Configure PN532:
+	#  - Disable pre/postamble
+	try:
 		cards = couchdb.Database(DATABASE)
 		while True:
 			# AutoPoll until card is found
-			# Query for card
-			# Unlock A
-			# Unlock B
-			# Read data
-			# Hash & Compare
-			# Open Door
-			pass
-except (KeyboardInterrupt, SystemExit):
-	pass
+			setStatus(reader, IDLE)
+			poll = reader.doit(In.AutoPoll(...))
+			for target in poll.Targets:
+				setStatus(reader, WORKING)
+				# Query for card
+				# Unlock A
+				# Unlock B
+				# Read data
+				# Hash & Compare
+				if ok:
+					# Open Door
+					setStatus(reader, SUCCESS)
+					openDoor()
+				else:
+					setStatus(reader, FAILURE)
+					sleep(1.0)
+	except (KeyboardInterrupt, SystemExit):
+		# Suppress traceback on normal exiting
+		pass
+	finally:
+		setStatus(reader, OFF)

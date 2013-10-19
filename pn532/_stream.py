@@ -18,6 +18,8 @@ class PN532(object):
 		self.serial.open()
 
 	def __exit__(self, *p):
+		from . import ACK
+		self.send(ACK()) # Cancel outstanding commands so we don't leave the PN532 hanging
 		self.serial.close()
 
 	@staticmethod
