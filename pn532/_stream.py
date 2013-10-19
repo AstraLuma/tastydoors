@@ -12,7 +12,13 @@ class PN532(object):
 	def __init__(self, port):
 		self.port = port
 		#TODO: Default baud
-		self.serial = serial.serial_for_url(self.port)
+		self.serial = serial.serial_for_url(self.port, do_not_open=True)
+
+	def __enter__(self):
+		self.serial.open()
+
+	def __exit__(self, *p):
+		self.serial.close()
 
 	@staticmethod
 	def _verifychecksum(*args):
