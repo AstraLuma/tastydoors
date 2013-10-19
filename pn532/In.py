@@ -1,4 +1,4 @@
-from . import Frame
+from . import Frame, fields
 from collections import namedtuple
 
 @fields('ActPass', 'BR', 'PassiveInitiatorData', 'NFCID3', 'Gi')
@@ -155,7 +155,7 @@ class DataExchangeResponse(Frame):
 		if len(payload) == 1:
 			return cls(payload[0], None)
 		else:
-			return cls(payload[0], payload[1:]
+			return cls(payload[0], payload[1:])
 
 @fields('DataOut')
 class CommunicateThru(Frame):
@@ -172,11 +172,11 @@ class CommunicateThruResponse(Frame):
 		if len(payload) == 1:
 			return cls(payload[0], None)
 		else:
-			return cls(payload[0], payload[1:]
+			return cls(payload[0], payload[1:])
 
 @fields('Tg')
 class Deselect(Frame):
-	__code__ = 0x52
+	__code__ = 0x44
 	def __payload__(self):
 		return self.Tg
 
@@ -184,3 +184,44 @@ class Deselect(Frame):
 class DeselectResponse(Frame):
 	__code__ = Deselect.__code__
 
+@fields('Tg')
+class Release(Frame):
+	__code__ = 0x52
+	def __payload__(self):
+		return self.Tg
+
+@fields('Status')
+class ReleaseResponse(Frame):
+	__code__ = Release.__code__
+
+@fields('Tg')
+class Select(Frame):
+	__code__ = 0x54
+	def __payload__(self):
+		return self.Tg
+
+@fields('Status')
+class SelectResponse(Frame):
+	__code__ = Select.__code__
+
+@fields('PollNr', 'Period', 'Types')
+class AutoPoll(Frame):
+	__code__ = 0x60
+	def __payload__(self):
+		return (self.PollNr, self.Period) + tuple(self.Types)
+
+@fields('Targets')
+class AutoPollResponse(Frame):
+	__code__ = AutoPoll.__code__ + 1
+
+	Target = namedtuple('Target', ['Type', 'AutoPollTargetData'])
+	@classmethod
+	def __build__(cls, payload):
+		NbTg = payload[0]
+		Target1 = cls.Target(payload[1], payload[3:3+payload[2]])
+		if NbTg == 1:
+			return cls([Target1])
+		else: # NbTg == 2
+			t2 = payload[3+payload[2]:]
+			Target2 = cls.Target(t2[0], t2[2:2+t2[1]])
+			return cls([Target1, Target2])
