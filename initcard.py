@@ -20,11 +20,12 @@ def setStatus(reader, status):
 	Sets the status LED(s).
 	"""
 
-def openDoor(reader):
+def finished(reader):
 	"""
 	Opens door, waits, closes door.
 	"""
 	setStatus(reader, SUCCESS)
+	sleep(1.0)
 
 def reject(reader):
 	"""
@@ -48,24 +49,19 @@ with PN532(SERIAL_PORT) as reader:
 				setStatus(reader, WORKING)
 				# Query for card
 				card = ...
-				if card is None:
+				if card is not None:
+					print "Card is already in Database"
 					reject()
 					continue
-				# Unlock A
-				auth = reader.doit(In.DataExchange(Tg, [0x60, card.block, card.key[:6]]))
-				# Unlock B
-				auth = reader.doit(In.DataExchange(Tg, [0x61, card.block, card.key[6:]]))
-				# Read data
-				data = reader.doit(In.DataExchange(Tg, 0x30, card.block))
-				# Hash & Compare
-				if ok:
-					# Open Door
-					openDoor()
-				else:
-					reject()
+
+				# Produce random data
+				# NOTE: Database then card, so if something fails, we can recover the card
+				# Write to Database
+				# Write to card
 	except (KeyboardInterrupt, SystemExit):
 		# Suppress traceback on normal exiting
 		pass
 	finally:
 		setStatus(reader, OFF)
 		reader.doit(PowerDown(...))
+

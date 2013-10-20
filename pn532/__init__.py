@@ -422,29 +422,18 @@ class SAMConfigurationResponse(Frame):
 	__code__ = SAMConfiguration.__code__ + 1
 	#TODO
 
+@fields('WakeUpEnable', 'GenerateIRQ')
 class PowerDown(Frame):
 	__code__ = 0x16
-
-	def __init__(self, WakeUpEnable, GenerateIRQ=None):
-		self.WakeUpEnable = WakeUpEnable
-		self.GenerateIRQ = GenerateIRQ
-
 	def __payload__(self):
 		if self.GenerateIRQ is None:
 			return self.WakeUpEnable,
 		else:
 			return self.WakeUpEnable, self.GenerateIRQ
 
+@fields('Status')
 class PowerDownResponse(Frame):
 	__code__ = PowerDown.__code__ + 1
-
-	def __init__(self, Status):
-		self.Status = Status
-
-	@classmethod
-	def __build__(cls, payload):
-		return cls(*payload)
-
 	def __payload__(self):
 		return self.Status,
 
