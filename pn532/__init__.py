@@ -100,6 +100,8 @@ class Frame(object):
 		"""
 		if isinstance(data, bytes):
 			data = map(ord, data)
+		elif isinstance(data, numbers.Number):
+			data = [data]
 		s = sum(data)
 		return -s & 0xFF
 
