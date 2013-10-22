@@ -5,7 +5,7 @@ from time import sleep
 from pn532 import *
 
 # Configuration Options
-SERIAL_PORT = "/dev/ttyS0"
+SERIAL_PORT = "/dev/ttyAMA0"
 DATABASE = "http://localhost/cards"
 
 # Status contstants

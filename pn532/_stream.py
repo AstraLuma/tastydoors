@@ -9,10 +9,16 @@ class TimeoutError(IOError):
 	pass
 
 class PN532(object):
-	def __init__(self, port):
+	def __init__(self, port, **opts):
 		self.port = port
-		#TODO: Default baud
-		self.serial = serial.serial_for_url(self.port, do_not_open=True)
+		opts.setdefault('baudrate', 115200)
+		self.serial = serial.serial_for_url(self.port, do_not_open=True, **opts)
+		self.serial.bytesize = 8
+		self.serial.parity = 'N'
+		self.serial.stopbits = 1
+		self.serial.rtscts = False
+		self.serial.dsrdtr = False
+		self.serial.xonxoff = False
 
 	def __enter__(self):
 		self.serial.open()
@@ -32,11 +38,20 @@ class PN532(object):
 				s += thing
 		if s != 0:
 			raise ChecksumError()
-
+        
+	@staticmethod
+	def _debug(msg, data):
+		txt = ' '.join("%02X" % d for d in map(ord, data))
+		if '%' in msg:
+			print msg % txt
+		else:
+			print msg, txt
+        
 	def send(self, frame):
 		"""p.send(Frame)
 		Sends the given frame to the connected PN532.
 		"""
+		self._debug("SEND", frame.towire())
 		self.serial.write(frame.towire())
 
 	def raw_get(self, timeout=None):
@@ -54,6 +69,7 @@ class PN532(object):
 		header = header[start:]
 		while len(header) <= 4:
 			header += self.serial.read(1)
+		self._debug("HEADER", header)
 		# Now we have enough to begin parsing it out
 		LEN = header[2]
 		LCS = header[3]
@@ -74,6 +90,7 @@ class PN532(object):
 			self._verifychecksum(LEN, LCS)
 		data = self.serial.read(LEN)
 		DCS = self.serial.read(1)
+		self._debug("DATA/DCS", data+DCS)
 		self._verifychecksum(data, DCS)
 		TFI = data[0]
 		if TFI in "\xD4\xD5":
@@ -92,10 +109,12 @@ class PN532(object):
 		"""
 		while True:
 			try:
-				return self.raw_get(timeout)
+				rv = self.raw_get(timeout)
+				print "RECV", rv
+				return rv
 			except ChecksumError:
+			        print "Checksum Error"
 				self.send(NACK())
-
 	def doit(self, frame):
 		"""p.doit(Frame) -> Frame
 		Execute a command and return the response.
@@ -105,6 +124,7 @@ class PN532(object):
 		self.send(frame)
 		ack = self.get() #TODO: 15ms timeout
 		if isinstance(ack, ACK):
+		        print "ACK"
 			pass # Continue
 		else:
 			raise IOError("PN532 sent %s when ACK was expected", ack)

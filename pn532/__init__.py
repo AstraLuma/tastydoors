@@ -75,9 +75,9 @@ class Frame(object):
 		Builds payload, including TFI, command code, and data.
 		"""
 		if self.sent:
-			payload = "\xD5"
-		else:
 			payload = "\xD4"
+		else:
+			payload = "\xD5"
 
 		payload += bytepack(self.__code__)
 
@@ -221,14 +221,14 @@ class DiagnoseResponse(Frame):
 		return cls(payload)
 
 
-class FirmwareVersion(Frame):
+class GetFirmwareVersion(Frame):
 	__code__ = 0x02
 	def __payload__(self):
 		pass
 
 @fields('IC', 'Ver', 'Rev', 'Support')
-class FirmwareVersionResponse(Frame):
-	__code__ = FirmwareVersion.__code__ + 1
+class GetFirmwareVersionResponse(Frame):
+	__code__ = GetFirmwareVersion.__code__ + 1
 
 	@property
 	def ISO18092(self):
@@ -245,15 +245,15 @@ class FirmwareVersionResponse(Frame):
 	def __payload__(self):
 		return self.IC, self.Ver, self.Rev, self.Support
 
-class GeneralStatus(Frame):
+class GetGeneralStatus(Frame):
 	__code__ = 0x04
 
 	def __payload__(self):
 		pass
 
 @fields("Err", "Field", "targets", "SAMstatus")
-class GeneralStatusResponse(Frame):
-	__code__ = GeneralStatus.__code__ + 1
+class GetGeneralStatusResponse(Frame):
+	__code__ = GetGeneralStatus.__code__ + 1
 
 	Target = collections.namedtuple("Target", ["Tg", "BrRx", "BrTx", "Type"])
 

@@ -1,0 +1,4 @@
+#!/usr/bin/python -i
+from pn532 import *
+reader = PN532("/dev/ttyAMA0")
+reader.__enter__()
