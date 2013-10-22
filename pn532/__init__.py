@@ -79,13 +79,13 @@ class Frame(object):
 		else:
 			payload = "\xD4"
 
-		payload += tobytes(self.__code__)
+		payload += bytepack(self.__code__)
 
 		fields = self.__payload__()
 		if fields is not None:
 			for field in fields:
 				if isinstance(field, numbers.Number):
-					payload += tobytes(field)
+					payload += bytepack(field)
 				elif isinstance(field, bytes):
 					payload += field
 				elif isinstance(field, tuple):
