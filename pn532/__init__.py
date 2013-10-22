@@ -107,7 +107,7 @@ class Frame(object):
 		"""f.towire() -> blob
 		Returns the frame as it is to be transmitted over the wire, excluding pre/postable.
 		"""
-		payload = self._bundlefields()
+		payload = self._buildpayload()
 		dcs = self._checksum(payload)
 		len_ = len(payload)
 
