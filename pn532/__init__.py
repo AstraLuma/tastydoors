@@ -127,21 +127,21 @@ class Frame(object):
 			msg += payload
 			msg += bytepack(dcs)
 
-		return msg
+		return "\0"+msg+"\0"
 
 class ACK(Frame):
 	"""
 	An ACK frame.
 	"""
 	def towire(self):
-		return "\0\xFF\0\xFF"
+		return "\0\0\xFF\0\xFF\0"
 
 class NACK(Frame):
 	"""
 	A NACK frame.
 	"""
 	def towire(self):
-		return "\0\xFF\xFF\0"
+		return "\0\0\xFF\xFF\0\0"
 
 class Error(Exception, Frame):
 	"""
@@ -209,12 +209,9 @@ class Diagnose(Frame):
 		else:
 			return self.NumTst, self.InParam
 
-@fields('NumTst', 'OutParam')
+@fields('OutParam')
 class DiagnoseResponse(Frame):
 	__code__ = Diagnose.__code__ + 1
-
-	def __init__(self, OutParam):
-		self.OutParam = OutParam
 
 	@classmethod
 	def __build__(cls, payload):
@@ -257,12 +254,6 @@ class GetGeneralStatusResponse(Frame):
 
 	Target = collections.namedtuple("Target", ["Tg", "BrRx", "BrTx", "Type"])
 
-	def __init__(self, Err, Field, targets, SAMstatus):
-		self.Err = Err
-		self.Field = Field
-		self.targets = targets
-		self.SAMStatus = SAMstatus
-
 	@property
 	def NbTg(self):
 		return len(self.targets)
@@ -272,10 +263,9 @@ class GetGeneralStatusResponse(Frame):
 		Err, Field, NbTg = payload[:3]
 		SAMstatus = payload[-1]
 		assert NbTg * 4 == len(payload[3:-1])
-
 		targets = [
-			self.Target(*payload[i:i+4])
-			for i in slice(3, -1, 4).indices(len(payload))
+			cls.Target(*payload[i:i+4])
+			for i in range(*slice(3, -1, 4).indices(len(payload)))
 		]
 
 		return cls(Err, Field, targets, SAMstatus)

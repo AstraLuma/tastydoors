@@ -93,6 +93,7 @@ class ListPassiveTargetResponse(Frame):
 	def __build__(cls, payload):
 		NbTg = payload[0]
 		# FIXME: Can this be parsed context-free? Or do we need the request packet?
+		return cls(payload)
 
 @fields('Tg', 'NFCID3', 'Gi')
 class ATR(Frame):

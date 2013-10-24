@@ -36,7 +36,8 @@ class PN532(object):
 				s += sum(map(ord, thing))
 			else:
 				s += thing
-		if s != 0:
+		print "SUM", s
+		if (s & 0xFF) != 0:
 			raise ChecksumError()
         
 	@staticmethod
@@ -67,23 +68,23 @@ class PN532(object):
 		# We have the start of a frame, get to work.
 		start = header.index("\x00\xFF")
 		header = header[start:]
-		while len(header) <= 4:
+		while len(header) < 4:
 			header += self.serial.read(1)
 		self._debug("HEADER", header)
 		# Now we have enough to begin parsing it out
-		LEN = header[2]
-		LCS = header[3]
+		LEN = ord(header[2])
+		LCS = ord(header[3])
 		if LEN == 0 and LCS == 0xFF:
 			return ACK()
 		elif LEN == 0xFF and LCS == 0:
 			return NACK()
 		elif LEN == 0xFF and LCS == 0xFF:
 			# Extended length
-			while len(header) <= 7:
+			while len(header) < 7:
 				header += self.serial.read(1)
-			LENM, LENL = header[4:6]
+			LENM, LENL = map(ord, header[4:6])
 			LEN = LENM * 0xFF + LENL
-			LCS = header[6]
+			LCS = ord(header[6])
 			self._verifychecksum(LENM, LENL, LCS)
 		else:
 			# Normal Frame
@@ -94,10 +95,11 @@ class PN532(object):
 		self._verifychecksum(data, DCS)
 		TFI = data[0]
 		if TFI in "\xD4\xD5":
-			ccode = data[1]
+			ccode = ord(data[1])
 			payload = data[2:]
 			f = Frame.get_class(ccode).fromwire(payload)
 			f.sent = TFI == "\xD4"
+			return f
 		else:
 			# Error Frame
 			raise Error(TFI)
