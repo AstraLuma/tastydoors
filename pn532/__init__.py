@@ -354,18 +354,12 @@ class ReadGPIOResponse(Frame):
 	__code__ = ReadGPIO.__code__ + 1
 
 	@classmethod
-	def __build__(cls, payload):
-		return cls(*payload)
-
 	def __payload__(self):
 		return self.P3, self.P7, selfI0I1
 
+@fields('P3', 'P7')
 class WriteGPIO(Frame):
 	__code__ = 0x0E
-
-	def __init__(self, P3=None, P7=None):
-		self.P3 = P3
-		self.P7 = P7
 
 	def __payload__(self):
 		return self.P3 or 0, self.P7 or 0
@@ -377,42 +371,35 @@ class WriteGPIOResponse(Frame):
 	def __build__(cls, payload):
 		return cls()
 
-	def __payload__(self):
-		pass
-
+@fields('BR')
 class SetSerialBaudRate(Frame):
 	__code__ = 0x10
-	#TODO
+	def __payload__(self):
+		return self.BR
 
 class SetSerialBaudRateResponse(Frame):
 	__code__ = SetSerialBaudRate.__code__ + 1
-	#TODO
 
+@fields('Flags')
 class SetParameters(Frame):
 	__code__ = 0x12
-	def __init__(self, Flags):
-		self.Flags = Flags
-
 	def __payload__(self):
 		return self.Flags,
 
 class SetParametersResponse(Frame):
 	__code__ = SetParameters.__code__ + 1
 
-	@classmethod
-	def __build__(cls, payload):
-		return cls()
-
-	def __payload__(self):
-		pass
-
+@fields('Mode', 'Timeout', 'IRQ')
 class SAMConfiguration(Frame):
 	__code__ = 0x14
-	#TODO
+	def __payload__(self):
+		if self.IRQ is None:
+			return self.Mode, self.Timeout
+		else:
+			return self.Mode, self.Timeout, self.IRQ
 
 class SAMConfigurationResponse(Frame):
 	__code__ = SAMConfiguration.__code__ + 1
-	#TODO
 
 @fields('WakeUpEnable', 'GenerateIRQ')
 class PowerDown(Frame):
