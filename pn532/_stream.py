@@ -22,6 +22,7 @@ class PN532(object):
 
 	def __enter__(self):
 		self.serial.open()
+		self.send(ACK()) # Align, cancel stuff, wake up, etc.
 
 	def __exit__(self, *p):
 		from . import ACK
