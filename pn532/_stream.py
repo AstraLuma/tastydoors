@@ -1,6 +1,6 @@
 import serial
 
-from . import Frame, ACK, NACK, Error
+from . import Frame, ACK, NACK, Error, SAMConfiguration
 
 class ChecksumError(IOError):
 	pass
@@ -22,7 +22,8 @@ class PN532(object):
 
 	def __enter__(self):
 		self.serial.open()
-		self.send(ACK()) # Align, cancel stuff, wake up, etc.
+		self.serial.write("\x55\x55\x00\x00\x00\x00")
+		self.send(SAMConfiguration(1)) # Align, cancel stuff, wake up, etc.
 
 	def __exit__(self, *p):
 		from . import ACK
