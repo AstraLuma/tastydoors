@@ -23,7 +23,7 @@ class PN532(object):
 	def __enter__(self):
 		self.serial.open()
 		self.serial.write("\x55\x55\x00\x00\x00\x00")
-		self.send(SAMConfiguration(1)) # Align, cancel stuff, wake up, etc.
+		self.send(SAMConfiguration(1, 0, None)) # Set SAM to normal
 
 	def __exit__(self, *p):
 		from . import ACK
