@@ -119,6 +119,7 @@ class PN532(object):
 			except ChecksumError:
 			        print "Checksum Error"
 				self.send(NACK())
+	
 	def doit(self, frame):
 		"""p.doit(Frame) -> Frame
 		Execute a command and return the response.

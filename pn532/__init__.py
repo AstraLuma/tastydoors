@@ -393,10 +393,13 @@ class SetParametersResponse(Frame):
 class SAMConfiguration(Frame):
 	__code__ = 0x14
 	def __payload__(self):
-		if self.IRQ is None:
+		
+		if self.IRQ is not None:
+			return self.Mode, self.Timeout, self.IRQ
+		elif self.Mode == 0x02:
 			return self.Mode, self.Timeout
 		else:
-			return self.Mode, self.Timeout, self.IRQ
+			return self.Mode,
 
 class SAMConfigurationResponse(Frame):
 	__code__ = SAMConfiguration.__code__ + 1
