@@ -1,4 +1,5 @@
 import serial
+import time
 
 from . import Frame, ACK, NACK, Error, SAMConfiguration
 
@@ -9,6 +10,7 @@ class TimeoutError(IOError):
 	pass
 
 class PN532(object):
+	TIMEOUT_RES = 0.2
 	def __init__(self, port, **opts):
 		self.port = port
 		opts.setdefault('baudrate', 115200)
@@ -19,10 +21,17 @@ class PN532(object):
 		self.serial.rtscts = False
 		self.serial.dsrdtr = False
 		self.serial.xonxoff = False
+		self.serial.timeout = self.TIMEOUT_RES # How long to wait before checking timeout
 
 	def __enter__(self):
 		self.serial.open()
-		self.doit(SAMConfiguration(1, 0, None), preamble="\x55\x55\x00\x00\x00\x00") # Set SAM to normal
+		self.send(SAMConfiguration(1, 0, None), preamble="\x55\x55\x00\x00\x00\x00") # Set SAM to normal
+		try:
+			self.get(timeout=1.0)
+		except TimeoutError:
+			pass
+		else:
+			self.get()
 
 	def __exit__(self, *p):
 		from . import ACK
@@ -64,14 +73,21 @@ class PN532(object):
 
 		FIXME: Timeouts
 		"""
+		stop = None
+		if timeout is not None:
+			stop = time.time() + timeout
 		header = ""
 		while "\x00\xFF" not in header:
 			header += self.serial.read(1)
+			if stop is not None and stop < time.time():
+				raise TimeoutError
 		# We have the start of a frame, get to work.
 		start = header.index("\x00\xFF")
 		header = header[start:]
 		while len(header) < 4:
 			header += self.serial.read(1)
+			if stop is not None and stop < time.time():
+				raise TimeoutError
 		self._debug("HEADER", header)
 		# Now we have enough to begin parsing it out
 		LEN = ord(header[2])
@@ -84,6 +100,8 @@ class PN532(object):
 			# Extended length
 			while len(header) < 7:
 				header += self.serial.read(1)
+				if stop is not None and stop < time.time():
+					raise TimeoutError
 			LENM, LENL = map(ord, header[4:6])
 			LEN = LENM * 0xFF + LENL
 			LCS = ord(header[6])
