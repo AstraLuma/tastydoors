@@ -25,7 +25,7 @@ class PN532(object):
 
 	def __enter__(self):
 		self.serial.open()
-		self.send(SAMConfiguration(1, 0, None), preamble="\x55\x55\x00\x00\x00\x00") # Set SAM to normal
+		self.send(SAMConfiguration(1, 0, None), preamble="\x55\x55\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0") # Set SAM to normal
 		try:
 			self.get(timeout=1.0)
 		except TimeoutError:
@@ -138,14 +138,14 @@ class PN532(object):
 			        print "Checksum Error"
 				self.send(NACK())
 				
-	def doit(self, frame, **kw):
+	def doit(self, frame, timeout=None, **kw):
 		"""p.doit(Frame) -> Frame
 		Execute a command and return the response.
 
 		TODO: Handle timeouts
 		"""
 		self.send(frame, **kw)
-		ack = self.get() #TODO: 15ms timeout
+		ack = self.get(timeout=timeout) #TODO: 15ms timeout
 		if isinstance(ack, ACK):
 		        print "ACK"
 			pass # Continue
@@ -153,6 +153,6 @@ class PN532(object):
 			raise IOError("PN532 sent %s when ACK was expected", ack)
 		# Not speced to send NACK
 
-		res = self.get()
+		res = self.get(timeout=timeout)
 		self.send(ACK())
 		return res
