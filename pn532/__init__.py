@@ -127,7 +127,7 @@ class Frame(object):
 			msg += payload
 			msg += bytepack(dcs)
 
-		return "\0"+msg+"\0"
+		return msg
 
 class ACK(Frame):
 	"""

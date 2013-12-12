@@ -22,8 +22,7 @@ class PN532(object):
 
 	def __enter__(self):
 		self.serial.open()
-		self.serial.write("\x55\x55\x00\x00\x00\x00")
-		self.send(SAMConfiguration(1, 0, None)) # Set SAM to normal
+		self.send(SAMConfiguration(1, 0, None), preamble="\x55\x55\x00\x00\x00\x00") # Set SAM to normal
 
 	def __exit__(self, *p):
 		from . import ACK
@@ -50,12 +49,13 @@ class PN532(object):
 		else:
 			print msg, txt
         
-	def send(self, frame):
+	def send(self, frame, preamble='\0', postamble='\0'):
 		"""p.send(Frame)
 		Sends the given frame to the connected PN532.
 		"""
-		self._debug("SEND", frame.towire())
-		self.serial.write(frame.towire())
+		msg = preamble+frame.towire()+postamble
+		self._debug("SEND", msg)
+		self.serial.write(msg)
 
 	def raw_get(self, timeout=None):
 		"""p.raw_get() -> Frame
