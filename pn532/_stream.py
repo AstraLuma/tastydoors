@@ -154,5 +154,6 @@ class PN532(object):
 		# Not speced to send NACK
 
 		res = self.get(timeout=timeout)
+		res.command = frame
 		self.send(ACK())
 		return res

@@ -85,15 +85,25 @@ class ListPassiveTarget(Frame):
 		else:
 			return self.MaxTg, self.BrTy, self.InitiatorData
 
-@fields('targets')
+@fields('NbTg', 'targets')
 class ListPassiveTargetResponse(Frame):
 	__code__ = ListPassiveTarget.__code__ + 1
-
+	_command = None
+	
+#	@property
+#	def command(self):
+#		return self._command
+#	
+#	@command.set
+#	def command(self, value):
+#		self._command = value
+#		
+#		#TODO: Reparse targets 
+	
 	@classmethod
 	def __build__(cls, payload):
 		NbTg = payload[0]
-		# FIXME: Can this be parsed context-free? Or do we need the request packet?
-		return cls(payload)
+		return cls(NbTg, payload[1:])
 
 @fields('Tg', 'NFCID3', 'Gi')
 class ATR(Frame):

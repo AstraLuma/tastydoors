@@ -46,6 +46,7 @@ class Frame(object):
 	_types = {}
 	sent = None
 	__code__ = None
+	command = None
 
 	@staticmethod
 	def get_class(code):
